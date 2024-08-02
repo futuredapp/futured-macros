@@ -33,13 +33,10 @@ final class EnumIdentableTests: XCTestCase {
                 case two
                 case three
 
-                enum CaseID: String, Hashable, CaseIterable, CustomStringConvertible {
+                enum CaseID: String {
                     case one
                     case two
                     case three
-                    var description: String {
-                        self.rawValue
-                    }
                 }
 
                 var caseId: CaseID {
@@ -89,11 +86,8 @@ final class EnumIdentableTests: XCTestCase {
             enum TestEnum {
                 case one(String)
 
-                enum CaseID: String, Hashable, CaseIterable, CustomStringConvertible {
+                enum CaseID: String {
                     case one
-                    var description: String {
-                        self.rawValue
-                    }
                 }
 
                 var caseId: CaseID {
@@ -139,13 +133,10 @@ final class EnumIdentableTests: XCTestCase {
             enum TestEnum {
                 case one, two, three
 
-                enum CaseID: String, Hashable, CaseIterable, CustomStringConvertible {
+                enum CaseID: String {
                     case one
                     case two
                     case three
-                    var description: String {
-                        self.rawValue
-                    }
                 }
 
                 var caseId: CaseID {
@@ -156,6 +147,80 @@ final class EnumIdentableTests: XCTestCase {
                         .two
                     case .three:
                         .three
+                    }
+                }
+
+                var id: String {
+                    self.caseId.rawValue
+                }
+
+                func hash(into hasher: inout Hasher) {
+                    hasher.combine(id)
+                }
+
+                static func == (lhs: Self, rhs: Self) -> Bool {
+                    lhs.id == rhs.id
+                }
+            }
+            """
+            ,
+            macros: testMacros
+        )
+        #else
+        throw XCTSkip("macros are only supported when running tests for the host platform")
+        #endif
+    }
+
+    func testMacro4() throws {
+        #if canImport(EnumIdentableMacros)
+        assertMacroExpansion(
+            """
+            @EnumIdentable
+            enum TestEnum {
+                case one(id: String)
+                case two(model: String)
+                case three
+                case four(xxx: Int, modelId: String)
+            }
+            """
+            ,
+            expandedSource:
+            """
+            enum TestEnum {
+                case one(id: String)
+                case two(model: String)
+                case three
+                case four(xxx: Int, modelId: String)
+
+                enum CaseID {
+                    case one(id: String)
+                    case two
+                    case three
+                    case four(modelId: String)
+                    var rawValue: String {
+                        switch self {
+                        case let .one(id):
+                            "one-\\(id)"
+                        case .two:
+                            "two"
+                        case .three:
+                            "three"
+                        case let .four(modelId):
+                            "four-\\(modelId)"
+                        }
+                    }
+                }
+
+                var caseId: CaseID {
+                    switch self {
+                    case let .one(id):
+                        .one(id: id)
+                    case .two:
+                        .two
+                    case .three:
+                        .three
+                    case let .four(_, modelId):
+                        .four(modelId: modelId)
                     }
                 }
 

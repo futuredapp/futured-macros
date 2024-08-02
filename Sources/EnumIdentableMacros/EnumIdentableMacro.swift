@@ -37,7 +37,7 @@ public struct EnumIdentableMacro: MemberMacro {
                 return []
             }
 
-            let caseIds: [String] = enumCases.compactMap { enumCase in
+            let caseIds: [(case: String, parameters: [(name: String, type: String)])] = enumCases.compactMap { enumCase in
                 guard let firstToken = enumCase.firstToken(viewMode: .fixedUp) else {
                     return nil
                 }
@@ -46,7 +46,23 @@ public struct EnumIdentableMacro: MemberMacro {
                     return nil
                 }
 
-                return id
+                let enumCaseParameterClause = enumCase.children(viewMode: .fixedUp).filter{ $0.kind == .enumCaseParameterClause }
+                let enumCaseParameterList = enumCaseParameterClause.flatMap { $0.children(viewMode: .fixedUp).filter { $0.kind == .enumCaseParameterList }}
+                let enumCaseParameter = enumCaseParameterList.flatMap { $0.children(viewMode: .fixedUp).filter { $0.kind == .enumCaseParameter }}
+                let parametersTokens = enumCaseParameter.compactMap {
+                    let parameterName = $0.firstToken(viewMode: .fixedUp)
+                    let parameterType = $0.lastToken(viewMode: .fixedUp)
+                    return (parameterName, parameterType)
+                }
+                let parameters: [(name: String, type: String)] = parametersTokens.compactMap { name, type in
+                    if case let .identifier(idName) = name?.tokenKind,
+                       idName.lowercased().contains("id"),
+                       case let .identifier(typeName) = type?.tokenKind {
+                        return (name: idName, type: typeName)
+                    }
+                    return (name: "_", type: "_")
+                }
+                return (id, parameters)
             }
 
             guard !caseIds.isEmpty else {
@@ -55,27 +71,73 @@ public struct EnumIdentableMacro: MemberMacro {
                 return []
             }
 
-            let enumSyntax = try EnumDeclSyntax("enum CaseID: String, Hashable, CaseIterable, CustomStringConvertible") {
-                for caseId in caseIds {
-                    EnumCaseDeclSyntax.init {
-                        EnumCaseElementSyntax.init(name: .identifier(caseId))
+            let casesContainsId = caseIds.contains { !$0.parameters.map(\.name).allSatisfy { $0 == "_" }}
+            let enumDefinition = casesContainsId ? "enum CaseID" : "enum CaseID: String"
+            let enumSyntax = try EnumDeclSyntax(.init(stringLiteral: enumDefinition)) {
+                for item in caseIds {
+                    EnumCaseDeclSyntax{
+                        if case let parameters = item.parameters, !parameters.isEmpty, parameters.contains(where: { $0.name != "_" }) {
+                            let parameters = parameters.compactMap {
+                                if $0.name != "_" {
+                                    return "\($0.name): \($0.type)"
+                                }
+                                return nil
+                            }.joined(separator: ", ")
+                            EnumCaseElementSyntax(name: .identifier("\(item.case)(\(parameters))"))
+                        } else {
+                            EnumCaseElementSyntax(name: .identifier(item.case))
+                        }
                     }
                 }
-                try VariableDeclSyntax("var description: String") {
-                    """
-                    self.rawValue
-                    """
+                if casesContainsId {
+                    try VariableDeclSyntax("var rawValue: String") {
+                        try SwitchExprSyntax("switch self") {
+                            for item in caseIds {
+                                if case let parameters = item.parameters, !parameters.isEmpty, parameters.contains(where: { $0.name != "_" }) {
+                                    let parameters = parameters.map(\.name).filter { $0 != "_" }.joined(separator: ", ")
+                                    SwitchCaseSyntax(stringLiteral:
+                                        """
+                                        case let .\(item.case)(\(parameters)):
+                                            "\(item.case)-\\(\(parameters))"
+                                        """
+                                    )
+                                } else {
+                                    SwitchCaseSyntax(stringLiteral:
+                                        """
+                                        case .\(item.case):
+                                            "\(item.case)"
+                                        """
+                                    )
+                                }
+                            }
+                        }
+                    }
                 }
             }
             let idAccessor = try VariableDeclSyntax("var caseId: CaseID") {
                 try SwitchExprSyntax("switch self") {
-                    for caseId in caseIds {
-                        SwitchCaseSyntax(stringLiteral:
-                            """
-                            case .\(caseId):
-                                .\(caseId)
-                            """
-                        )
+                    for item in caseIds {
+                        if case let parameters = item.parameters, !parameters.isEmpty, parameters.contains(where: { $0.name != "_" }) {
+                            let definitionParameters = parameters.compactMap {
+                                if $0.name != "_" {
+                                    return "\($0.name): \($0.name)"
+                                }
+                                return nil
+                            }.joined(separator: ", ")
+                            SwitchCaseSyntax(stringLiteral:
+                                """
+                                case let .\(item.case)(\(parameters.map(\.name).joined(separator: ", "))):
+                                    .\(item.case)(\(definitionParameters))
+                                """
+                            )
+                        } else {
+                            SwitchCaseSyntax(stringLiteral:
+                                """
+                                case .\(item.case):
+                                    .\(item.case)
+                                """
+                            )
+                        }
                     }
                 }
             }
