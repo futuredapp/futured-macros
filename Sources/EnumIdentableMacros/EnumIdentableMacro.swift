@@ -18,12 +18,14 @@ public struct EnumIdentableMacro: MemberMacro {
         providingMembersOf declaration: Declaration,
         in context: Context) throws -> [SwiftSyntax.DeclSyntax] where Declaration : SwiftSyntax.DeclGroupSyntax, Context : SwiftSyntaxMacros.MacroExpansionContext {
 
+            // Check if the declaration is an enum
             guard let declaration = declaration.as(EnumDeclSyntax.self) else {
                 let enumError = Diagnostic(node: node._syntaxNode, message: Diagnostics.mustBeEnum)
                 context.diagnose(enumError)
                 return []
             }
 
+            // Get all AST element which represent cases from the enum
             guard let enumCases: [SyntaxProtocol] = declaration.memberBlock
                 .children(viewMode: .fixedUp).filter({ $0.kind == .memberDeclList })
                 .first?
@@ -37,6 +39,7 @@ public struct EnumIdentableMacro: MemberMacro {
                 return []
             }
 
+            // Get all cases names with their parameters
             let caseIds: [(case: String, parameters: [(name: String, type: String)])] = enumCases.compactMap { enumCase in
                 guard let firstToken = enumCase.firstToken(viewMode: .fixedUp) else {
                     return nil
@@ -54,6 +57,7 @@ public struct EnumIdentableMacro: MemberMacro {
                     let parameterType = $0.lastToken(viewMode: .fixedUp)
                     return (parameterName, parameterType)
                 }
+                // Check if the case contains an parameter that contains "id"
                 let parameters: [(name: String, type: String)] = parametersTokens.compactMap { name, type in
                     if case let .identifier(idName) = name?.tokenKind,
                        idName.lowercased().contains("id"),
@@ -65,6 +69,7 @@ public struct EnumIdentableMacro: MemberMacro {
                 return (id, parameters)
             }
 
+            // Check if the enum has any parsed cases
             guard !caseIds.isEmpty else {
                 let enumError = Diagnostic(node: node._syntaxNode, message: Diagnostics.mustHaveCases)
                 context.diagnose(enumError)
@@ -72,7 +77,10 @@ public struct EnumIdentableMacro: MemberMacro {
             }
 
             let casesContainsId = caseIds.contains { !$0.parameters.map(\.name).allSatisfy { $0 == "_" }}
+
+            // If new enum hasn't associated values, we can use the String conforming for generating the rawValue
             let enumDefinition = casesContainsId ? "enum CaseID" : "enum CaseID: String"
+
             let enumSyntax = try EnumDeclSyntax(.init(stringLiteral: enumDefinition)) {
                 for item in caseIds {
                     EnumCaseDeclSyntax{

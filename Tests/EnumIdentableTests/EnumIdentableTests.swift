@@ -4,7 +4,6 @@ import SwiftSyntaxMacros
 import SwiftSyntaxMacrosTestSupport
 import XCTest
 
-// Macro implementations build for the host, so the corresponding module is not available when cross-compiling. Cross-compiled tests may still make use of the macro itself in end-to-end tests.
 #if canImport(EnumIdentableMacros)
 import EnumIdentableMacros
 
@@ -14,7 +13,7 @@ let testMacros: [String: Macro.Type] = [
 #endif
 
 final class EnumIdentableTests: XCTestCase {
-    func testMacro() throws {
+    func testSimpleEnum() throws {
         #if canImport(EnumIdentableMacros)
         assertMacroExpansion(
             """
@@ -71,7 +70,7 @@ final class EnumIdentableTests: XCTestCase {
         #endif
     }
 
-    func testMacro2() throws {
+    func testEnumWithAssociatedValue() throws {
         #if canImport(EnumIdentableMacros)
         assertMacroExpansion(
             """
@@ -118,7 +117,7 @@ final class EnumIdentableTests: XCTestCase {
         #endif
     }
 
-    func testMacro3() throws {
+    func testEnumWithCasesOnOneLine() throws {
         #if canImport(EnumIdentableMacros)
         assertMacroExpansion(
             """
@@ -171,7 +170,7 @@ final class EnumIdentableTests: XCTestCase {
         #endif
     }
 
-    func testMacro4() throws {
+    func testEnumWithAssociatedValuesMarkedAsId() throws {
         #if canImport(EnumIdentableMacros)
         assertMacroExpansion(
             """
