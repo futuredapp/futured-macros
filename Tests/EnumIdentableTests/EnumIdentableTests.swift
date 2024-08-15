@@ -243,4 +243,57 @@ final class EnumIdentableTests: XCTestCase {
         throw XCTSkip("macros are only supported when running tests for the host platform")
         #endif
     }
+    
+    func testEnumWithAssociatedValuesMarkedAsIdProject() throws {
+        #if canImport(EnumIdentableMacros)
+        assertMacroExpansion(
+            """
+            @EnumIdentable
+            enum Destination: Hashable, Identifiable {
+                case destination(id: Int, a: String)
+            }
+            """
+            ,
+            expandedSource:
+            """
+            enum Destination: Hashable, Identifiable {
+                case destination(id: Int, a: String)
+
+                enum CaseID {
+                    case destination(id: Int)
+                    var rawValue: String {
+                        switch self {
+                        case let .destination(id):
+                            "destination-\\(id)"
+                        }
+                    }
+                }
+
+                var caseId: CaseID {
+                    switch self {
+                    case let .destination(id, _):
+                        .destination(id: id)
+                    }
+                }
+
+                var id: String {
+                    self.caseId.rawValue
+                }
+
+                func hash(into hasher: inout Hasher) {
+                    hasher.combine(id)
+                }
+
+                static func == (lhs: Self, rhs: Self) -> Bool {
+                    lhs.id == rhs.id
+                }
+            }
+            """
+            ,
+            macros: testMacros
+        )
+        #else
+        throw XCTSkip("macros are only supported when running tests for the host platform")
+        #endif
+    }
 }
