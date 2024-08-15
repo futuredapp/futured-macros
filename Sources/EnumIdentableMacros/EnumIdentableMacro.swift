@@ -55,18 +55,22 @@ public struct EnumIdentableMacro: MemberMacro {
 
             let enumCaseParameterClause = enumCase.children(viewMode: .fixedUp).filter{ $0.kind == .enumCaseParameterClause }
             let enumCaseParameterList = enumCaseParameterClause.flatMap { $0.children(viewMode: .fixedUp).filter { $0.kind == .enumCaseParameterList }}
-            let enumCaseParameter = enumCaseParameterList.flatMap { $0.children(viewMode: .fixedUp).filter { $0.kind == .enumCaseParameter }}
-            let parametersTokens = enumCaseParameter.compactMap {
-                let parameterName = $0.firstToken(viewMode: .fixedUp)
-                let parameterType = $0.lastToken(viewMode: .fixedUp)
-                return (parameterName, parameterType)
+            let enumCaseParameter: [SyntaxChildren.Element] = enumCaseParameterList.flatMap { $0.children(viewMode: .fixedUp).filter { $0.kind == .enumCaseParameter }}
+            let parametersTokens = enumCaseParameter.compactMap { item -> (TokenSyntax?, TypeSyntax)? in
+                guard
+                    let item = item.as(EnumCaseParameterSyntax.self)
+                else {
+                    return nil
+                }
+                return (item.firstName, item.type)
             }
             // Check if the case contains an parameter that contains "id"
             let parameters: [(name: String, type: String)] = parametersTokens.compactMap { name, type in
-                if case let .identifier(idName) = name?.tokenKind,
-                   idName.lowercased().contains("id"),
-                   case let .identifier(typeName) = type?.tokenKind {
-                    return (name: idName, type: typeName)
+                if
+                    case let .identifier(idName) = name?.tokenKind,
+                    idName.lowercased().contains("id")
+                {
+                    return (name: idName, type: "\(type)")
                 }
                 return (name: "_", type: "_")
             }
