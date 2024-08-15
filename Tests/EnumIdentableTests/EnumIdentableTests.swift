@@ -26,7 +26,7 @@ final class EnumIdentableTests: XCTestCase {
             """
             ,
             expandedSource:
-            """
+            #"""
             enum TestEnum {
                 case one
                 case two
@@ -61,7 +61,7 @@ final class EnumIdentableTests: XCTestCase {
                     lhs.id == rhs.id
                 }
             }
-            """
+            """#
             ,
             macros: testMacros
         )
@@ -81,7 +81,7 @@ final class EnumIdentableTests: XCTestCase {
             """
             ,
             expandedSource:
-            """
+            #"""
             enum TestEnum {
                 case one(String)
 
@@ -108,7 +108,7 @@ final class EnumIdentableTests: XCTestCase {
                     lhs.id == rhs.id
                 }
             }
-            """
+            """#
             ,
             macros: testMacros
         )
@@ -128,7 +128,7 @@ final class EnumIdentableTests: XCTestCase {
             """
             ,
             expandedSource:
-            """
+            #"""
             enum TestEnum {
                 case one, two, three
 
@@ -161,7 +161,7 @@ final class EnumIdentableTests: XCTestCase {
                     lhs.id == rhs.id
                 }
             }
-            """
+            """#
             ,
             macros: testMacros
         )
@@ -184,7 +184,7 @@ final class EnumIdentableTests: XCTestCase {
             """
             ,
             expandedSource:
-            """
+            #"""
             enum TestEnum {
                 case one(id: String)
                 case two(model: String)
@@ -199,13 +199,13 @@ final class EnumIdentableTests: XCTestCase {
                     var rawValue: String {
                         switch self {
                         case let .one(id):
-                            "one-\\(id)"
+                            "one-\(id)"
                         case .two:
                             "two"
                         case .three:
                             "three"
                         case let .four(modelId):
-                            "four-\\(modelId)"
+                            "four-\(modelId)"
                         }
                     }
                 }
@@ -235,7 +235,7 @@ final class EnumIdentableTests: XCTestCase {
                     lhs.id == rhs.id
                 }
             }
-            """
+            """#
             ,
             macros: testMacros
         )
@@ -255,7 +255,7 @@ final class EnumIdentableTests: XCTestCase {
             """
             ,
             expandedSource:
-            """
+            #"""
             enum Destination: Hashable, Identifiable {
                 case destination(id: Int, a: String)
 
@@ -264,7 +264,7 @@ final class EnumIdentableTests: XCTestCase {
                     var rawValue: String {
                         switch self {
                         case let .destination(id):
-                            "destination-\\(id)"
+                            "destination-\(id)"
                         }
                     }
                 }
@@ -288,7 +288,7 @@ final class EnumIdentableTests: XCTestCase {
                     lhs.id == rhs.id
                 }
             }
-            """
+            """#
             ,
             macros: testMacros
         )
