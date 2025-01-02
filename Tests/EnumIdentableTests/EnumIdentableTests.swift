@@ -244,7 +244,7 @@ final class EnumIdentableTests: XCTestCase {
         #endif
     }
     
-    func testEnumWithAssociatedValuesMarkedAsIdProject() throws {
+    func testEnumWithAssociatedValuesMarkedAsId2() throws {
         #if canImport(EnumIdentableMacros)
         assertMacroExpansion(
             """
@@ -295,5 +295,58 @@ final class EnumIdentableTests: XCTestCase {
         #else
         throw XCTSkip("macros are only supported when running tests for the host platform")
         #endif
+    }
+
+    func testEnumWithMoreAssociatedValuesMarkedAsId() throws {
+    #if canImport(EnumIdentableMacros)
+        assertMacroExpansion(
+            """
+            @EnumIdentable
+            enum Destination: Hashable, Identifiable {
+                case destination(id1: Int, id2: String, a: String)
+            }
+            """
+            ,
+            expandedSource:
+            #"""
+            enum Destination: Hashable, Identifiable {
+                case destination(id1: Int, id2: String, a: String)
+            
+                enum CaseID {
+                    case destination(id1: Int, id2: String)
+                    var rawValue: String {
+                        switch self {
+                        case let .destination(id1, id2):
+                            "destination-\(id1)-\(id2)"
+                        }
+                    }
+                }
+            
+                var caseId: CaseID {
+                    switch self {
+                    case let .destination(id1, id2, _):
+                        .destination(id1: id1, id2: id2)
+                    }
+                }
+            
+                var id: String {
+                    self.caseId.rawValue
+                }
+            
+                func hash(into hasher: inout Hasher) {
+                    hasher.combine(id)
+                }
+            
+                static func == (lhs: Self, rhs: Self) -> Bool {
+                    lhs.id == rhs.id
+                }
+            }
+            """#
+            ,
+            macros: testMacros
+        )
+    #else
+        throw XCTSkip("macros are only supported when running tests for the host platform")
+    #endif
     }
 }
