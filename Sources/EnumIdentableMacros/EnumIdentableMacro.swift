@@ -110,11 +110,11 @@ public struct EnumIdentableMacro: MemberMacro {
                     try SwitchExprSyntax("switch self") {
                         for item in caseIds {
                             if case let parameters = item.parameters, !parameters.isEmpty, parameters.contains(where: { $0.name != "_" }) {
-                                let parameters = parameters.map(\.name).filter { $0 != "_" }.joined(separator: ", ")
+                                let parameters = parameters.map(\.name).filter { $0 != "_" }
                                 SwitchCaseSyntax(stringLiteral:
                                     """
-                                    case let .\(item.case)(\(parameters)):
-                                        "\(item.case)-\\(\(parameters))"
+                                    case let .\(item.case)(\(parameters.joined(separator: ", "))):
+                                        "\(item.case)-\(parameters.map { "\\(\($0))" }.joined(separator: "-"))"
                                     """
                                 )
                             } else {
