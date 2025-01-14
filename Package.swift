@@ -24,6 +24,13 @@ let package = Package(
                 .product(name: "SwiftCompilerPlugin", package: "swift-syntax")
             ]
         ),
+        .macro(
+            name: "DataCacheMacros",
+            dependencies: [
+                .product(name: "SwiftSyntaxMacros", package: "swift-syntax"),
+                .product(name: "SwiftCompilerPlugin", package: "swift-syntax")
+            ]
+        ),
 
         // Library that exposes a macro as part of its API, which is used in client programs.
         .target(name: "EnumIdentable", dependencies: ["EnumIdentableMacros"]),
@@ -33,6 +40,14 @@ let package = Package(
             name: "EnumIdentableTests",
             dependencies: [
                 "EnumIdentableMacros",
+                .product(name: "SwiftSyntaxMacrosTestSupport", package: "swift-syntax"),
+            ]
+        ),
+
+        .testTarget(
+            name: "DataCacheTests",
+            dependencies: [
+                "DataCacheMacros",
                 .product(name: "SwiftSyntaxMacrosTestSupport", package: "swift-syntax"),
             ]
         ),
