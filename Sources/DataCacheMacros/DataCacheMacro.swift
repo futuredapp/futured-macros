@@ -21,7 +21,8 @@ public struct DataCacheMacro: MemberMacro {
     Declaration : SwiftSyntax.DeclGroupSyntax,
     Context : SwiftSyntaxMacros.MacroExpansionContext
     {
-        return makeVersionsStruct(members: declaration.memberBlock.members)
+        return makePrivateCopies(members: declaration.memberBlock.members)
+        + makeVersionsStruct(members: declaration.memberBlock.members)
         + emmitSubsriptionSupport(className: className(decl: declaration))
         + emmitTransactionSupport(
             className: className(decl: declaration),
@@ -73,6 +74,12 @@ public struct DataCacheMacro: MemberMacro {
             ),
             DeclSyntax("private var __version: __Versions = .init()"),
         ]
+    }
+
+    private static func  makePrivateCopies(members: MemberBlockItemListSyntax) -> [DeclSyntax] {
+        storedVariable(members: members).map { varDecl in
+            DeclSyntax("private var _\(varDecl.bindings.first!)")
+        }
     }
 
     private static func emmitSubsriptionSupport(className: String) -> [DeclSyntax] {

@@ -24,10 +24,16 @@ public struct VersionedPropertyMacro: AccessorMacro {
         }
         return [
             """
-            didSet {
-                if oldValue != self.\(raw: ident.identifier.text) {
+            get {
+                self._\(raw: ident.identifier.text)
+            }
+            """,
+            """
+            set {
+                if newValue != self._\(raw: ident.identifier.text) {
                     self.__version.\(raw: ident.identifier.text) = self.__version.\(raw: ident.identifier.text) &+ 1
                 }
+                self._\(raw: ident.identifier.text) = newValue
             }
             """
         ]

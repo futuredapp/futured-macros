@@ -46,6 +46,10 @@ final class DataCacheTests: XCTestCase {
                     self.userName = userName
                 }
             
+                private var _userName: String?
+            
+                private var _revision: Int = 0
+            
                 struct __Versions {
                     var userName: UInt = 0
                     var revision: UInt = 0
@@ -187,17 +191,25 @@ final class DataCacheTests: XCTestCase {
             #"""
             final class Global {
                 var userName: String? {
-                    didSet {
-                        if oldValue != self.userName {
+                    get {
+                        self._userName
+                    }
+                    set {
+                        if newValue != self._userName {
                             self.__version.userName = self.__version.userName &+ 1
                         }
+                        self._userName = newValue
                     }
                 }
                 var revision: Int = 0 {
-                    didSet {
-                        if oldValue != self.revision {
+                    get {
+                        self._revision
+                    }
+                    set {
+                        if newValue != self._revision {
                             self.__version.revision = self.__version.revision &+ 1
                         }
+                        self._revision = newValue
                     }
                 }
             
