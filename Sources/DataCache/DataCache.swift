@@ -14,6 +14,9 @@ public protocol VersionedDataCache {
 @attached(extension, conformances: VersionedDataCache)
 public macro DataCache() = #externalMacro(module: "DataCacheMacros",type: "DataCacheMacro")
 
+@attached(accessor)
+public macro VersionedProperty() = #externalMacro(module: "DataCacheMacros", type: "VersionedPropertyMacro")
+
 @freestanding(expression)
 public macro cacheSubscribtion<T: VersionedDataCache, each P>(on: T, properties: repeat KeyPath<T, each P>) -> AsyncStream<T> = #externalMacro(
     module: "DataCacheMacros",
