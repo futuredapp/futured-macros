@@ -59,7 +59,7 @@ public struct CacheSubscriptionMacro: ExpressionMacro {
             """
             \(raw: cacheNameExr).makeSubscriber(
                 predicate: { 
-                    \( raw: properties.map { "$0\($0) == $1\($0)" }.joined(separator: " || ") ) 
+                    \( raw: properties.map { "$0\($0) != $1\($0)" }.joined(separator: " || ") ) 
                 }
             )
             """

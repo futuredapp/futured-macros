@@ -160,7 +160,7 @@ final class DataCacheTests: XCTestCase {
             #"""
             global.makeSubscriber(
                 predicate: {
-                    $0.userName == $1.userName || $0.revision == $1.revision
+                    $0.userName != $1.userName || $0.revision != $1.revision
                 }
             )
             """#
