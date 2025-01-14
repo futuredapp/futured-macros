@@ -14,7 +14,7 @@ public protocol VersionedDataCache {
 @attached(extension, conformances: VersionedDataCache)
 public macro DataCache() = #externalMacro(module: "DataCacheMacros",type: "DataCacheMacro")
 
-@attached(accessor)
+@attached(accessor, names: named(init), named(get), named(set))
 public macro VersionedProperty() = #externalMacro(module: "DataCacheMacros", type: "VersionedPropertyMacro")
 
 @freestanding(expression)
