@@ -191,6 +191,10 @@ final class DataCacheTests: XCTestCase {
             #"""
             final class Global {
                 var userName: String? {
+                    @storageRestrictions(initializes: _userName)
+                    init(newValue)  {
+                        self._userName = newValue
+                    }
                     get {
                         self._userName
                     }
@@ -202,6 +206,10 @@ final class DataCacheTests: XCTestCase {
                     }
                 }
                 var revision: Int = 0 {
+                    @storageRestrictions(initializes: _revision)
+                    init(newValue)  {
+                        self._revision = newValue
+                    }
                     get {
                         self._revision
                     }

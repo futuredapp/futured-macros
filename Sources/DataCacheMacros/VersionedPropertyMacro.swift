@@ -24,6 +24,12 @@ public struct VersionedPropertyMacro: AccessorMacro {
         }
         return [
             """
+            @storageRestrictions(initializes: _\(raw: ident.identifier.text))
+            init(newValue)  {
+                self._\(raw: ident.identifier.text) = newValue
+            }
+            """,
+            """
             get {
                 self._\(raw: ident.identifier.text)
             }
