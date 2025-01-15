@@ -209,7 +209,7 @@ final class DataCacheTests: XCTestCase {
             }
             
             extension Global: ProxySettable {
-                final class Proxy: ProxyObject<Global> {
+                final class Proxy: ProxyObject {
                     private var ref: Global
             
                     init(ref: Global) {

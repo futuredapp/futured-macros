@@ -30,7 +30,7 @@ public struct ProxySetterMacro: ExtensionMacro {
 
         let declStr =
             """
-                final class Proxy: ProxyObject<\(classDecl.name.text)> {
+                final class Proxy: ProxyObject {
                     private var ref: \(classDecl.name.text)
                 
                     init(ref: \(classDecl.name.text)) {

@@ -56,7 +56,7 @@ public extension ProxySettable where Self: VersionedDataCache {
 @attached(extension, conformances: VersionedDataCache)
 public macro DataCache() = #externalMacro(module: "DataCacheMacros",type: "DataCacheMacro")
 
-@attached(extension, conformances: ProxySettable)
+@attached(extension, conformances: ProxySettable, names: named(Proxy))
 public macro ProxySetter() = #externalMacro(module: "DataCacheMacros",type: "ProxySetterMacro")
 
 @attached(accessor, names: named(init), named(get), named(set))
