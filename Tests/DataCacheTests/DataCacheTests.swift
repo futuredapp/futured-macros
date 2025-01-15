@@ -47,7 +47,7 @@ final class DataCacheTests: XCTestCase {
                     self.userName = userName
                 }
 
-                struct _Versions {
+                struct _Versions: Hashable {
                     var userName: UInt = 0
                     var revision: UInt = 0
                 }
@@ -57,7 +57,7 @@ final class DataCacheTests: XCTestCase {
                 private var _subscribtions: [SubscriptionBox<Global>] = []
             
                 func makeSubscriber(predicate: @escaping (_ oldValue: _Versions, _ newValue: _Versions) -> Bool) -> AsyncStream<Global> {
-                    let subscriptionBox = SubscriptionBox(initialVersion: _version, predicate: predicate)
+                    let subscriptionBox = SubscriptionBox<Global>(initialVersion: _version, predicate: predicate)
                     let stream = AsyncStream<Global> { continuation in
                         continuation.onTermination = { [weak self] _ in
                             self?._subscribtions.removeAll {

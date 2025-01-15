@@ -64,7 +64,7 @@ public struct DataCacheMacro: MemberMacro {
         [
             DeclSyntax(
             """
-            struct _Versions {
+            struct _Versions: Hashable {
             \(raw: storedVariableNames(members: members).map { "    var \($0): UInt = 0" }.joined(separator: "\n")  )
             }
             """
@@ -79,7 +79,7 @@ public struct DataCacheMacro: MemberMacro {
             DeclSyntax(
             """
             func makeSubscriber(predicate: @escaping (_ oldValue: _Versions, _ newValue: _Versions) -> Bool) -> AsyncStream<\(raw: className)> {
-                let subscriptionBox = SubscriptionBox(initialVersion: _version, predicate: predicate)
+                let subscriptionBox = SubscriptionBox<\(raw: className)>(initialVersion: _version, predicate: predicate)
                 let stream = AsyncStream<\(raw: className)> { continuation in
                     continuation.onTermination = { [weak self] _ in
                         self?._subscribtions.removeAll { 
