@@ -75,7 +75,7 @@ public struct DataCacheMacro: MemberMacro {
 
     private static func emmitSubsriptionSupport(className: String) -> [DeclSyntax] {
         [
-            DeclSyntax("private var _subscribtions: [SubscriptionBox<Self>] = []"),
+            DeclSyntax("private var _subscribtions: [SubscriptionBox<\(raw: className)>] = []"),
             DeclSyntax(
             """
             func makeSubscriber(predicate: @escaping (_ oldValue: _Versions, _ newValue: _Versions) -> Bool) -> AsyncStream<\(raw: className)> {

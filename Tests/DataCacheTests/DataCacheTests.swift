@@ -54,7 +54,7 @@ final class DataCacheTests: XCTestCase {
             
                 private var _version: _Versions = .init()
 
-                private var _subscribtions: [SubscriptionBox<Self>] = []
+                private var _subscribtions: [SubscriptionBox<Global>] = []
             
                 func makeSubscriber(predicate: @escaping (_ oldValue: _Versions, _ newValue: _Versions) -> Bool) -> AsyncStream<Global> {
                     let subscriptionBox = SubscriptionBox(initialVersion: _version, predicate: predicate)
