@@ -10,6 +10,7 @@ import DataCacheMacros
 let testMacros: [String: Macro.Type] = [
     "DataCache": DataCacheMacro.self,
     "CacheSubscribe": CacheSubscriptionMacro.self,
+    "ProxySetter": ProxySetterMacro.self
 ]
 let versionedPropertyMacros: [String: Macro.Type] = [
     "VersionedProperty": VersionedPropertyMacro.self,
@@ -45,48 +46,21 @@ final class DataCacheTests: XCTestCase {
                 init(userName: String?) {
                     self.userName = userName
                 }
-            
-                private var _userName: String?
-            
-                private var _revision: Int = 0
-            
-                struct __Versions {
+
+                struct _Versions {
                     var userName: UInt = 0
                     var revision: UInt = 0
                 }
             
-                private var __version: __Versions = .init()
+                private var _version: _Versions = .init()
+
+                private var _subscribtions: [SubscriptionBox<Self>] = []
             
-                private final class SubscriptionBox {
-                    internal init(
-                        initialVersion: __Versions,
-                        predicate: @escaping (_ oldValue: __Versions, _ newValue: __Versions) -> Bool
-                    ) {
-                        self.initialVersion = initialVersion
-                        self.predicate = predicate
-                    }
-            
-                    private var initialVersion: __Versions
-                    private var predicate: (_ oldValue: __Versions, _ newValue: __Versions) -> Bool
-            
-                    // calling convention
-                    var yeald: ((Global) -> Void)!
-            
-                    func responds(to newVersion: __Versions) -> Bool {
-                        defer {
-                            initialVersion = newVersion
-                        }
-                        return predicate(initialVersion, newVersion)
-                    }
-                }
-            
-                private var subscribtions: [SubscriptionBox] = []
-            
-                func makeSubscriber(predicate: @escaping (_ oldValue: __Versions, _ newValue: __Versions) -> Bool) -> AsyncStream<Global> {
-                    let subscriptionBox = SubscriptionBox(initialVersion: __version, predicate: predicate)
+                func makeSubscriber(predicate: @escaping (_ oldValue: _Versions, _ newValue: _Versions) -> Bool) -> AsyncStream<Global> {
+                    let subscriptionBox = SubscriptionBox(initialVersion: _version, predicate: predicate)
                     let stream = AsyncStream<Global> { continuation in
                         continuation.onTermination = { [weak self] _ in
-                            self?.subscribtions.removeAll {
+                            self?._subscribtions.removeAll {
                                 $0 === subscriptionBox
                             }
                         }
@@ -94,44 +68,14 @@ final class DataCacheTests: XCTestCase {
                             continuation.yield($0)
                         }
                     }
-                    self.subscribtions.append(subscriptionBox)
+                    self._subscribtions.append(subscriptionBox)
                     return stream
                 }
             
-                final class ProxySetter {
-                    private var ref: Global
-            
-                    internal init(ref: Global) {
-                        self.ref = ref
-                    }
-            
-                    var userName: String? {
-                        get {
-                            ref.userName
-                        }
-                        set {
-                            ref.userName = newValue
-                        }
-                    }
-            
-                    var revision: Int  {
-                        get {
-                            ref.revision
-                        }
-                        set {
-                            ref.revision = newValue
-                        }
-                    }
-                }
-            
-                func transaction(eval: (ProxySetter) -> Void) {
-                    eval(ProxySetter(ref: self))
-                    evaluateSubscribtions()
-                }
-            
-                private func evaluateSubscribtions() {
-                    for subscribtion in subscribtions {
-                        if subscribtion.responds(to: __version) {
+                func applyChanges(during block: () -> Void) {
+                    block()
+                    for subscribtion in _subscribtions {
+                        if subscribtion.responds(to: _version) {
                             subscribtion.yeald(self)
                         }
                     }
@@ -200,11 +144,13 @@ final class DataCacheTests: XCTestCase {
                     }
                     set {
                         if newValue != self._userName {
-                            self.__version.userName = self.__version.userName &+ 1
+                            self._version.userName = self._version.userName &+ 1
                         }
                         self._userName = newValue
                     }
                 }
+
+                private var _userName: String?
                 var revision: Int = 0 {
                     @storageRestrictions(initializes: _revision)
                     init(newValue)  {
@@ -215,12 +161,14 @@ final class DataCacheTests: XCTestCase {
                     }
                     set {
                         if newValue != self._revision {
-                            self.__version.revision = self.__version.revision &+ 1
+                            self._version.revision = self._version.revision &+ 1
                         }
                         self._revision = newValue
                     }
                 }
-            
+
+                private var _revision: Int = 0
+
                 init(userName: String?) {
                     self.userName = userName
                 }
@@ -233,4 +181,67 @@ final class DataCacheTests: XCTestCase {
         throw XCTSkip("macros are only supported when running tests for the host platform")
 #endif
     }
+
+    func testProxyExpansion() throws {
+#if canImport(DataCacheMacros)
+        assertMacroExpansion(
+            """
+            @ProxySetter
+            final class Global {
+                var userName: String?
+                var revision: Int = 0
+            
+                init(userName: String?) {
+                    self.userName = userName
+                }
+            }
+            """
+            ,
+            expandedSource:
+            #"""
+            final class Global {
+                var userName: String?
+                var revision: Int = 0
+            
+                init(userName: String?) {
+                    self.userName = userName
+                }
+            }
+            
+            extension Global: ProxySettable {
+                final class Proxy: ProxyObject<Global> {
+                    private var ref: Global
+            
+                    init(ref: Global) {
+                        self.ref = ref
+                    }
+            
+                    var userName: String? {
+                        get {
+                            ref.userName
+                        }
+                        set {
+                            ref.userName = newValue
+                        }
+                    }
+            
+                    var revision: Int  {
+                        get {
+                            ref.revision
+                        }
+                        set {
+                            ref.revision = newValue
+                        }
+                    }
+                }
+            }
+            """#
+            ,
+            macros: testMacros
+        )
+#else
+        throw XCTSkip("macros are only supported when running tests for the host platform")
+#endif
+    }
+
 }

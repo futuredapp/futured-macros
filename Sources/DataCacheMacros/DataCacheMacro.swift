@@ -21,12 +21,9 @@ public struct DataCacheMacro: MemberMacro {
     Declaration : SwiftSyntax.DeclGroupSyntax,
     Context : SwiftSyntaxMacros.MacroExpansionContext
     {
-        return makePrivateCopies(members: declaration.memberBlock.members)
-        + makeVersionsStruct(members: declaration.memberBlock.members)
+        return makeVersionsStruct(members: declaration.memberBlock.members)
         + emmitSubsriptionSupport(className: className(decl: declaration))
-        + emmitTransactionSupport(
-            className: className(decl: declaration),
-            storedVariables: storedVariable(members: declaration.memberBlock.members))
+        + emmitTransactionSupport(className: className(decl: declaration))
     }
 
         // todo
@@ -67,57 +64,25 @@ public struct DataCacheMacro: MemberMacro {
         [
             DeclSyntax(
             """
-            struct __Versions {
+            struct _Versions {
             \(raw: storedVariableNames(members: members).map { "    var \($0): UInt = 0" }.joined(separator: "\n")  )
             }
             """
             ),
-            DeclSyntax("private var __version: __Versions = .init()"),
+            DeclSyntax("private var _version: _Versions = .init()"),
         ]
-    }
-
-    private static func  makePrivateCopies(members: MemberBlockItemListSyntax) -> [DeclSyntax] {
-        storedVariable(members: members).map { varDecl in
-            DeclSyntax("private var _\(varDecl.bindings.first!)")
-        }
     }
 
     private static func emmitSubsriptionSupport(className: String) -> [DeclSyntax] {
         [
+            DeclSyntax("private var _subscribtions: [SubscriptionBox<Self>] = []"),
             DeclSyntax(
             """
-            private final class SubscriptionBox {
-                internal init(
-                    initialVersion: __Versions,
-                    predicate: @escaping (_ oldValue: __Versions, _ newValue: __Versions) -> Bool
-                ) {
-                    self.initialVersion = initialVersion
-                    self.predicate = predicate
-                }
-                
-                private var initialVersion: __Versions
-                private var predicate: (_ oldValue: __Versions, _ newValue: __Versions) -> Bool
-                
-                // calling convention
-                var yeald: ((\(raw: className)) -> Void)!
-                
-                func responds(to newVersion: __Versions) -> Bool {
-                    defer { 
-                        initialVersion = newVersion 
-                    }
-                    return predicate(initialVersion, newVersion)
-                }
-            }
-            """
-            ),
-            DeclSyntax("private var subscribtions: [SubscriptionBox] = []"),
-            DeclSyntax(
-            """
-            func makeSubscriber(predicate: @escaping (_ oldValue: __Versions, _ newValue: __Versions) -> Bool) -> AsyncStream<\(raw: className)> {
-                let subscriptionBox = SubscriptionBox(initialVersion: __version, predicate: predicate)
+            func makeSubscriber(predicate: @escaping (_ oldValue: _Versions, _ newValue: _Versions) -> Bool) -> AsyncStream<\(raw: className)> {
+                let subscriptionBox = SubscriptionBox(initialVersion: _version, predicate: predicate)
                 let stream = AsyncStream<\(raw: className)> { continuation in
                     continuation.onTermination = { [weak self] _ in
-                        self?.subscribtions.removeAll { 
+                        self?._subscribtions.removeAll { 
                             $0 === subscriptionBox 
                         }
                     }
@@ -125,7 +90,7 @@ public struct DataCacheMacro: MemberMacro {
                         continuation.yield($0) 
                     }
                 }
-                self.subscribtions.append(subscriptionBox)
+                self._subscribtions.append(subscriptionBox)
                 return stream
             }
             """
@@ -133,37 +98,14 @@ public struct DataCacheMacro: MemberMacro {
         ]
     }
 
-    private static func emmitTransactionSupport(className: String, storedVariables: [VariableDeclSyntax]) -> [DeclSyntax] {
-        let variableDeclarations = storedVariables.compactMap(emmitProxyVariable(storedVariable:))
-        let declStr =
-            """
-            final class ProxySetter {
-                private var ref: \(className)
-            
-                internal init(ref: \(className)) {
-                    self.ref = ref
-                }
-            
-            \(variableDeclarations.joined(separator: "\n\n"))
-            }
-            """
+    private static func emmitTransactionSupport(className: String) -> [DeclSyntax] {
         return [
             DeclSyntax(
-                "\(raw: declStr)"
-            ),
-            DeclSyntax(
                 """
-                func transaction(eval: (ProxySetter) -> Void) {
-                    eval(ProxySetter(ref: self))
-                    evaluateSubscribtions()
-                }
-                """
-            ),
-            DeclSyntax(
-                """
-                private func evaluateSubscribtions() {
-                    for subscribtion in subscribtions {
-                        if subscribtion.responds(to: __version) {
+                func applyChanges(during block: () -> Void) {
+                    block()
+                    for subscribtion in _subscribtions {
+                        if subscribtion.responds(to: _version) {
                             subscribtion.yeald(self)
                         }
                     }
@@ -171,27 +113,6 @@ public struct DataCacheMacro: MemberMacro {
                 """
             )
         ]
-    }
-
-    private static func emmitProxyVariable(storedVariable: VariableDeclSyntax) -> String? {
-        guard
-            let binding = storedVariable.bindings.first,
-            let name = binding.pattern.as(IdentifierPatternSyntax.self),
-            let type = binding.typeAnnotation?.type
-        else {
-            return nil
-        }
-
-        return  """
-                    var \(name): \(type) {
-                        get { 
-                            ref.\(name)
-                        }
-                        set {
-                            ref.\(name) = newValue
-                        }
-                    }
-                """
     }
 }
 

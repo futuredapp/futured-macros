@@ -37,11 +37,28 @@ public struct VersionedPropertyMacro: AccessorMacro {
             """
             set {
                 if newValue != self._\(raw: ident.identifier.text) {
-                    self.__version.\(raw: ident.identifier.text) = self.__version.\(raw: ident.identifier.text) &+ 1
+                    self._version.\(raw: ident.identifier.text) = self._version.\(raw: ident.identifier.text) &+ 1
                 }
                 self._\(raw: ident.identifier.text) = newValue
             }
             """
         ]
+    }
+}
+
+extension VersionedPropertyMacro: PeerMacro {
+    public static func expansion(
+        of node: SwiftSyntax.AttributeSyntax,
+        providingPeersOf declaration: some SwiftSyntax.DeclSyntaxProtocol,
+        in context: some SwiftSyntaxMacros.MacroExpansionContext
+    ) throws -> [SwiftSyntax.DeclSyntax] {
+        guard
+            let varDecl = declaration.as(VariableDeclSyntax.self),
+            let binding = varDecl.bindings.first
+        else {
+            return []
+        }
+
+        return ["private var _\(binding)"]
     }
 }

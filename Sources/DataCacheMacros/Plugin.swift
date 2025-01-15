@@ -17,5 +17,6 @@ struct DataCachePlugin: CompilerPlugin {
         DataCacheMacro.self,
         CacheSubscriptionMacro.self,
         VersionedPropertyMacro.self,
+        ProxySetterMacro.self
     ]
 }
