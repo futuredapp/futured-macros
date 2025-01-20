@@ -30,6 +30,7 @@ extension EnumIdentableMacro: ExtensionMacro {
         let equatableConformance = try ExtensionDeclSyntax(
             """
             extension \(type): Equatable {
+                // \(raw: protocolNames.map { "\($0)"})
                 static func == (lhs: Self, rhs: Self) -> Bool {
                     lhs.id == rhs.id
                 }
@@ -40,6 +41,7 @@ extension EnumIdentableMacro: ExtensionMacro {
         let hashableConformance = try ExtensionDeclSyntax(
             """
             extension \(type): Hashable {
+                // \(raw: protocolNames.map { "\($0)"})
                 func hash(into hasher: inout Hasher) {
                     hasher.combine(id)
                 }
@@ -50,6 +52,7 @@ extension EnumIdentableMacro: ExtensionMacro {
         let identifiableConformance = try ExtensionDeclSyntax(
             """
             extension \(type): Identifiable {
+                // \(raw: protocolNames.map { "\($0)"} )
                 var id: String {
                     self.caseId.rawValue
                 }
