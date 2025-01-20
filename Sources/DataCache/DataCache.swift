@@ -15,22 +15,25 @@ public protocol VersionedDataCache {
 public final class SubscriptionBox<C: VersionedDataCache> {
     public init(
         initialVersion: C._Versions,
+        continuation: AsyncStream<C>.Continuation,
         predicate: @escaping (_ oldValue: C._Versions, _ newValue: C._Versions) -> Bool
     ) {
-        self.initialVersion = initialVersion
+        self.lastVersion = initialVersion
+        self.yield = continuation.yield
         self.predicate = predicate
     }
 
-    private var initialVersion: C._Versions
-    private var predicate: (_ oldValue: C._Versions, _ newValue: C._Versions) -> Bool
+    private let yield: (sending C) -> AsyncStream<C>.Continuation.YieldResult
+    private let predicate: (_ oldValue: C._Versions, _ newValue: C._Versions) -> Bool
+    private var lastVersion: C._Versions
 
-    public var yeald: ((C) -> Void)!
-
-    public func responds(to newVersion: C._Versions) -> Bool {
+    public func emmit(cache: C, ifDiffers newVersion: C._Versions) {
         defer {
-            initialVersion = newVersion
+            lastVersion = newVersion
         }
-        return predicate(initialVersion, newVersion)
+        if predicate(lastVersion, newVersion) {
+            _ = yield(cache)
+        }
     }
 }
 

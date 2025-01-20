@@ -57,27 +57,27 @@ final class DataCacheTests: XCTestCase {
                 private var _subscribtions: [SubscriptionBox<Global>] = []
             
                 func makeSubscriber(predicate: @escaping (_ oldValue: _Versions, _ newValue: _Versions) -> Bool) -> AsyncStream<Global> {
-                    let subscriptionBox = SubscriptionBox<Global>(initialVersion: _version, predicate: predicate)
-                    let stream = AsyncStream<Global> { continuation in
-                        continuation.onTermination = { [weak self] _ in
-                            self?._subscribtions.removeAll {
-                                $0 === subscriptionBox
-                            }
-                        }
-                        subscriptionBox.yeald = {
-                            continuation.yield($0)
+                    let (stream, continuation) = AsyncStream.makeStream(of: Global.self)
+                    let box = SubscriptionBox(
+                        initialVersion: self._version,
+                        continuation: continuation,
+                        predicate: predicate
+                    )
+            
+                    continuation.onTermination = { [weak self] _ in
+                        self?._subscribtions.removeAll {
+                            $0 === box
                         }
                     }
-                    self._subscribtions.append(subscriptionBox)
+            
+                    self._subscribtions.append(box)
                     return stream
                 }
             
                 func applyChanges(during block: () -> Void) {
                     block()
                     for subscribtion in _subscribtions {
-                        if subscribtion.responds(to: _version) {
-                            subscribtion.yeald(self)
-                        }
+                        subscribtion.emmit(cache: self, ifDiffers: self._version)
                     }
                 }
             }
