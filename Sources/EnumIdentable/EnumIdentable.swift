@@ -5,5 +5,5 @@ import Foundation
 /// CaseID has all cases of the original enum, but ignores associated values which not contains an "id" string in the parameter name.
 /// The cases with associated values that contains "id" string in the parameter name are used to generate the rawValue of the CaseID.
 @attached(extension, conformances: Equatable, Identifiable, Hashable, names: named(id), named(hash), named(==))
-@attached(member, names: named(CaseId), named(caseId))
+@attached(member, names: named(CaseID), named(caseId))
 public macro EnumIdentable() = #externalMacro(module: "EnumIdentableMacros",type: "EnumIdentableMacro")
