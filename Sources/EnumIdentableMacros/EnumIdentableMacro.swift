@@ -5,7 +5,6 @@
 //  Created by Simon Sestak on 31/07/2024.
 //
 
-import SwiftCompilerPlugin
 import SwiftSyntax
 import SwiftSyntaxBuilder
 import SwiftSyntaxMacros
@@ -201,11 +200,4 @@ public struct EnumIdentableMacro: MemberMacro {
 
         public var severity: DiagnosticSeverity { .error }
     }
-}
-
-@main
-struct EnumIdentablePlugin: CompilerPlugin {
-    let providingMacros: [Macro.Type] = [
-        EnumIdentableMacro.self,
-    ]
 }
