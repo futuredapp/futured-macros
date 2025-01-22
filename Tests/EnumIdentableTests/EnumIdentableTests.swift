@@ -48,17 +48,23 @@ final class EnumIdentableTests: XCTestCase {
                         .three
                     }
                 }
-
-                var id: String {
-                    self.caseId.rawValue
+            }
+            
+            extension TestEnum: Equatable {
+                static func == (lhs: Self, rhs: Self) -> Bool {
+                    lhs.id == rhs.id
                 }
-
+            }
+            
+            extension TestEnum: Hashable {
                 func hash(into hasher: inout Hasher) {
                     hasher.combine(id)
                 }
-
-                static func == (lhs: Self, rhs: Self) -> Bool {
-                    lhs.id == rhs.id
+            }
+            
+            extension TestEnum: Identifiable {
+                var id: String {
+                    self.caseId.rawValue
                 }
             }
             """#
@@ -95,17 +101,23 @@ final class EnumIdentableTests: XCTestCase {
                         .one
                     }
                 }
-
-                var id: String {
-                    self.caseId.rawValue
+            }
+            
+            extension TestEnum: Equatable {
+                static func == (lhs: Self, rhs: Self) -> Bool {
+                    lhs.id == rhs.id
                 }
-
+            }
+            
+            extension TestEnum: Hashable {
                 func hash(into hasher: inout Hasher) {
                     hasher.combine(id)
                 }
-
-                static func == (lhs: Self, rhs: Self) -> Bool {
-                    lhs.id == rhs.id
+            }
+            
+            extension TestEnum: Identifiable {
+                var id: String {
+                    self.caseId.rawValue
                 }
             }
             """#
@@ -148,17 +160,23 @@ final class EnumIdentableTests: XCTestCase {
                         .three
                     }
                 }
-
-                var id: String {
-                    self.caseId.rawValue
+            }
+            
+            extension TestEnum: Equatable {
+                static func == (lhs: Self, rhs: Self) -> Bool {
+                    lhs.id == rhs.id
                 }
-
+            }
+            
+            extension TestEnum: Hashable {
                 func hash(into hasher: inout Hasher) {
                     hasher.combine(id)
                 }
-
-                static func == (lhs: Self, rhs: Self) -> Bool {
-                    lhs.id == rhs.id
+            }
+            
+            extension TestEnum: Identifiable {
+                var id: String {
+                    self.caseId.rawValue
                 }
             }
             """#
@@ -222,17 +240,23 @@ final class EnumIdentableTests: XCTestCase {
                         .four(modelId: modelId)
                     }
                 }
-
-                var id: String {
-                    self.caseId.rawValue
+            }
+            
+            extension TestEnum: Equatable {
+                static func == (lhs: Self, rhs: Self) -> Bool {
+                    lhs.id == rhs.id
                 }
-
+            }
+            
+            extension TestEnum: Hashable {
                 func hash(into hasher: inout Hasher) {
                     hasher.combine(id)
                 }
-
-                static func == (lhs: Self, rhs: Self) -> Bool {
-                    lhs.id == rhs.id
+            }
+            
+            extension TestEnum: Identifiable {
+                var id: String {
+                    self.caseId.rawValue
                 }
             }
             """#
@@ -249,14 +273,14 @@ final class EnumIdentableTests: XCTestCase {
         assertMacroExpansion(
             """
             @EnumIdentable
-            enum Destination: Hashable, Identifiable {
+            enum Destination {
                 case destination(id: Int, a: String)
             }
             """
             ,
             expandedSource:
             #"""
-            enum Destination: Hashable, Identifiable {
+            enum Destination {
                 case destination(id: Int, a: String)
 
                 enum CaseID {
@@ -275,17 +299,23 @@ final class EnumIdentableTests: XCTestCase {
                         .destination(id: id)
                     }
                 }
-
-                var id: String {
-                    self.caseId.rawValue
+            }
+            
+            extension Destination: Equatable {
+                static func == (lhs: Self, rhs: Self) -> Bool {
+                    lhs.id == rhs.id
                 }
-
+            }
+            
+            extension Destination: Hashable {
                 func hash(into hasher: inout Hasher) {
                     hasher.combine(id)
                 }
-
-                static func == (lhs: Self, rhs: Self) -> Bool {
-                    lhs.id == rhs.id
+            }
+            
+            extension Destination: Identifiable {
+                var id: String {
+                    self.caseId.rawValue
                 }
             }
             """#
@@ -302,14 +332,14 @@ final class EnumIdentableTests: XCTestCase {
         assertMacroExpansion(
             """
             @EnumIdentable
-            enum Destination: Hashable, Identifiable {
+            enum Destination {
                 case destination(id1: Int, id2: String, a: String)
             }
             """
             ,
             expandedSource:
             #"""
-            enum Destination: Hashable, Identifiable {
+            enum Destination {
                 case destination(id1: Int, id2: String, a: String)
             
                 enum CaseID {
@@ -328,17 +358,23 @@ final class EnumIdentableTests: XCTestCase {
                         .destination(id1: id1, id2: id2)
                     }
                 }
+            }
             
-                var id: String {
-                    self.caseId.rawValue
+            extension Destination: Equatable {
+                static func == (lhs: Self, rhs: Self) -> Bool {
+                    lhs.id == rhs.id
                 }
+            }
             
+            extension Destination: Hashable {
                 func hash(into hasher: inout Hasher) {
                     hasher.combine(id)
                 }
+            }
             
-                static func == (lhs: Self, rhs: Self) -> Bool {
-                    lhs.id == rhs.id
+            extension Destination: Identifiable {
+                var id: String {
+                    self.caseId.rawValue
                 }
             }
             """#
