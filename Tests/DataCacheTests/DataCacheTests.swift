@@ -151,7 +151,7 @@ final class DataCacheTests: XCTestCase {
                 }
 
                 private var _userName: String?
-                var revision: Int = 0 {
+                var revision: Int {
                     @storageRestrictions(initializes: _revision)
                     init(newValue)  {
                         self._revision = newValue
@@ -209,6 +209,72 @@ final class DataCacheTests: XCTestCase {
             }
             
             extension Global: ProxySettable {
+                final class Proxy: ProxyObject {
+                    private var ref: Global
+            
+                    init(ref: Global) {
+                        self.ref = ref
+                    }
+            
+                    var userName: String? {
+                        get {
+                            ref.userName
+                        }
+                        set {
+                            ref.userName = newValue
+                        }
+                    }
+            
+                    var revision: Int  {
+                        get {
+                            ref.revision
+                        }
+                        set {
+                            ref.revision = newValue
+                        }
+                    }
+                }
+            }
+            """#
+            ,
+            macros: testMacros
+        )
+#else
+        throw XCTSkip("macros are only supported when running tests for the host platform")
+#endif
+    }
+
+
+    func testProxyGlobalActor() throws {
+#if canImport(DataCacheMacros)
+        assertMacroExpansion(
+            """
+            @MainActor
+            @ProxySetter(isolation: MainActor.self)
+            final class Global {
+                var userName: String?
+                var revision: Int = 0
+            
+                init(userName: String?) {
+                    self.userName = userName
+                }
+            }
+            """
+            ,
+            expandedSource:
+            #"""
+            @MainActor
+            final class Global {
+                var userName: String?
+                var revision: Int = 0
+            
+                init(userName: String?) {
+                    self.userName = userName
+                }
+            }
+            
+            extension Global: ProxySettable {
+                @MainActor
                 final class Proxy: ProxyObject {
                     private var ref: Global
             

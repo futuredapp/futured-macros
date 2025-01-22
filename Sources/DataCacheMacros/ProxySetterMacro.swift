@@ -24,11 +24,28 @@ public struct ProxySetterMacro: ExtensionMacro {
             return []
         }
 
+        let attributeActor = node.arguments.flatMap { arguments -> String? in
+            let isolationArg =  arguments.as(LabeledExprListSyntax.self)?.first { labeledExpr in
+                labeledExpr.label?.text == "isolation"
+            }
+
+            guard let memberAccess = isolationArg?.expression.as(MemberAccessExprSyntax.self) else {
+                return nil
+            }
+
+            guard let base = memberAccess.base else {
+                return nil
+            }
+
+            return "\(base)"
+        }
+
         let variableDeclarations = storedVariable(
             members: declaration.memberBlock.members
         ).compactMap(emmitProxyVariable(storedVariable:))
 
-        let declStr =
+
+        var declStr =
             """
                 final class Proxy: ProxyObject {
                     private var ref: \(classDecl.name.text)
@@ -40,6 +57,10 @@ public struct ProxySetterMacro: ExtensionMacro {
             \(variableDeclarations.joined(separator: "\n\n"))
                 }
             """
+
+        if let attributeActor {
+            declStr = "    @\(attributeActor)\n" + declStr
+        }
 
         return [
             try? ExtensionDeclSyntax(
