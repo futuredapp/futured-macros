@@ -123,7 +123,7 @@ public struct DataCacheMacro: MemberMacro {
         makePattern +=
         """
             }
-        
+            defer { continuation.yield(self) }
             self._subscribtions.append(box)
             return stream
         }
