@@ -75,6 +75,8 @@ public struct ProxySetterMacro: ExtensionMacro {
             try? ExtensionDeclSyntax(
                 """
                 extension \(raw: classDecl.name.text): ProxySettable {
+                    typealias Ref = \(raw: classDecl.name.text)
+                
                 \(raw: declStr)
                 
                 \(raw: transactionDecl)
