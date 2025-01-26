@@ -62,11 +62,22 @@ public struct ProxySetterMacro: ExtensionMacro {
             declStr = "    @\(attributeActor)\n" + declStr
         }
 
+        let transactionDecl =
+        """
+            func withTransaction(in block: (Proxy) -> Void) {
+                self.applyChanges {
+                    block(Proxy(ref: self))
+                }
+            }
+        """
+
         return [
             try? ExtensionDeclSyntax(
                 """
                 extension \(raw: classDecl.name.text): ProxySettable {
                 \(raw: declStr)
+                
+                \(raw: transactionDecl)
                 }
                 """
             )

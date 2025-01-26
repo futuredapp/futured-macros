@@ -21,12 +21,28 @@ public struct DataCacheMacro: MemberMacro {
     Declaration : SwiftSyntax.DeclGroupSyntax,
     Context : SwiftSyntaxMacros.MacroExpansionContext
     {
+        let attributeActor = node.arguments.flatMap { arguments -> String? in
+            let isolationArg =  arguments.as(LabeledExprListSyntax.self)?.first { labeledExpr in
+                labeledExpr.label?.text == "isolation"
+            }
+
+            guard let memberAccess = isolationArg?.expression.as(MemberAccessExprSyntax.self) else {
+                return nil
+            }
+
+            guard let base = memberAccess.base else {
+                return nil
+            }
+
+            return "\(base)"
+        }
+
+
         return makeVersionsStruct(members: declaration.memberBlock.members)
-        + emmitSubsriptionSupport(className: className(decl: declaration))
+        + emmitSubsriptionSupport(className: className(decl: declaration), actor: attributeActor)
         + emmitTransactionSupport(className: className(decl: declaration))
     }
 
-        // todo
     private static func className<Declaration: SwiftSyntax.DeclGroupSyntax>(decl: Declaration) -> String! {
         guard let clsDecl = decl.as(ClassDeclSyntax.self) else {
             return nil
@@ -35,7 +51,7 @@ public struct DataCacheMacro: MemberMacro {
         return clsDecl.name.text
     }
 
-        // if some variables are undesirable, you can add filter to this method
+    // if some variables are undesirable, you can add filter to this method
     private static func storedVariable(members: MemberBlockItemListSyntax) -> [VariableDeclSyntax] {
         members.compactMap { member in
             guard
@@ -73,30 +89,49 @@ public struct DataCacheMacro: MemberMacro {
         ]
     }
 
-    private static func emmitSubsriptionSupport(className: String) -> [DeclSyntax] {
-        [
-            DeclSyntax("private var _subscribtions: [SubscriptionBox<\(raw: className)>] = []"),
-            DeclSyntax(
+    private static func emmitSubsriptionSupport(className: String, actor: String?) -> [DeclSyntax] {
+        var makePattern =
+        """
+        func makeSubscriber(predicate: @escaping (_ oldValue: _Versions, _ newValue: _Versions) -> Bool) -> AsyncStream<\(className)> {
+            let (stream, continuation) = AsyncStream.makeStream(of: \(className).self)
+            let box = SubscriptionBox(
+                initialVersion: self._version,
+                continuation: continuation,
+                predicate: predicate
+            )
+        
+            continuation.onTermination = { [weak self] _ in
+        
+        """
+        if let actor {
+            makePattern +=
             """
-            func makeSubscriber(predicate: @escaping (_ oldValue: _Versions, _ newValue: _Versions) -> Bool) -> AsyncStream<\(raw: className)> {
-                let (stream, continuation) = AsyncStream.makeStream(of: \(raw: className).self)
-                let box = SubscriptionBox(
-                    initialVersion: self._version,
-                    continuation: continuation,
-                    predicate: predicate
-                )
-            
-                continuation.onTermination = { [weak self] _ in
+                    Task { @\(actor) in 
+                        self?._subscribtions.removeAll {
+                            $0 === box
+                        }
+                    }
+            """
+        } else {
+            makePattern +=
+            """
                     self?._subscribtions.removeAll {
                         $0 === box
                     }
-                }
-            
-                self._subscribtions.append(box)
-                return stream
-            }
             """
-            )
+        }
+        makePattern +=
+        """
+            }
+        
+            self._subscribtions.append(box)
+            return stream
+        }
+        """
+
+        return [
+            DeclSyntax("private var _subscribtions: [SubscriptionBox<\(raw: className)>] = []"),
+            DeclSyntax(stringLiteral: makePattern)
         ]
     }
 

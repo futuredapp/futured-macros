@@ -251,6 +251,7 @@ final class DataCacheTests: XCTestCase {
             """
             @MainActor
             @ProxySetter(isolation: MainActor.self)
+            @DataCache(isolation: MainActor.self)
             final class Global {
                 var userName: String?
                 var revision: Int = 0

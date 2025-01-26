@@ -19,21 +19,19 @@ public struct CacheSubscriptionMacro: ExpressionMacro {
         var cacheNameExr: String?
         var properties: [String] = []
 
-        for listItem in node.argumentList {
+        for listItem in node.arguments {
             if cacheNameExr == nil {
                 if
-                    let labeled = listItem.as(LabeledExprSyntax.self),
-                    labeled.label?.text == "on"
+                    listItem.label?.text == "on"
                 {
-                    cacheNameExr = "\(labeled.expression)"
+                    cacheNameExr = "\(listItem.expression)"
                 } else {
                     return ExprSyntax("")
                 }
             } else if properties.count == 0 {
                 if
-                    let labeled = listItem.as(LabeledExprSyntax.self),
-                    labeled.label?.text == "properties",
-                    let kpExpr = labeled.expression.as(KeyPathExprSyntax.self)
+                    listItem.label?.text == "properties",
+                    let kpExpr = listItem.expression.as(KeyPathExprSyntax.self)
                 {
                     properties = ["\(kpExpr.components)"]
                 } else {
@@ -41,8 +39,7 @@ public struct CacheSubscriptionMacro: ExpressionMacro {
                 }
             } else {
                 if
-                    let labeled = listItem.as(LabeledExprSyntax.self),
-                    let kpExpr = labeled.expression.as(KeyPathExprSyntax.self)
+                    let kpExpr = listItem.expression.as(KeyPathExprSyntax.self)
                 {
                     properties.append("\(kpExpr.components)")
                 } else {
