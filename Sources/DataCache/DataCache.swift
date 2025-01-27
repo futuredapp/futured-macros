@@ -45,10 +45,13 @@ public protocol ProxySettable {
 @attached(member, names: named(_version), named(_subscribtions), named(makeSubscriber), named(applyChanges), named(_Versions))
 @attached(memberAttribute)
 @attached(extension, conformances: VersionedDataCache)
-public macro DataCache<GA: GlobalActor>(isolation: GA.Type? = nil) = #externalMacro(module: "DataCacheMacros",type: "DataCacheMacro")
+public macro DataCache<GA: GlobalActor>(isolation: GA.Type? = Optional<MainActor.Type>.none) = #externalMacro(
+    module: "DataCacheMacros",
+    type: "DataCacheMacro"
+)
 
 @attached(extension, conformances: ProxySettable, names: named(Proxy), named(withTransaction))
-public macro ProxySetter<GA: GlobalActor>(isolation: GA.Type? = nil) = #externalMacro(
+public macro ProxySetter<GA: GlobalActor>(isolation: GA.Type? = Optional<MainActor.Type>.none) = #externalMacro(
     module: "DataCacheMacros",
     type: "ProxySetterMacro"
 )
