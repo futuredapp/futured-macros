@@ -39,6 +39,8 @@ public struct FlattenMacro: PeerMacro {
             throw FlattenMacroError.requiresTypeAnnotation
         }
 
+        var generatedDecls: [DeclSyntax] = []
+
         let getOnlySubscript: DeclSyntax =
             """
             subscript<Value>(dynamicMember keyPath: KeyPath<\(propertyType), Value>) -> Value {
@@ -46,7 +48,10 @@ public struct FlattenMacro: PeerMacro {
             }
             """
 
-        let getSetSubscript: DeclSyntax =
+        generatedDecls.append(getOnlySubscript)
+
+        if property.bindingSpecifier.text == "var" {
+            let getSetSubscript: DeclSyntax =
             """
             subscript<Value>(dynamicMember keyPath: WritableKeyPath<\(propertyType), Value>) -> Value {
                 get { \(raw: propertyName)[keyPath: keyPath] }
@@ -54,7 +59,10 @@ public struct FlattenMacro: PeerMacro {
             }
             """
 
-        return [getOnlySubscript, getSetSubscript]
+            generatedDecls.append(getSetSubscript)
+        }
+
+        return generatedDecls
     }
 }
 

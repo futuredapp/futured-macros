@@ -81,15 +81,6 @@ final class FlattenTests: XCTestCase {
                 subscript <Value>(dynamicMember keyPath: KeyPath<InnerData, Value>) -> Value {
                     inner[keyPath: keyPath]
                 }
-            
-                subscript <Value>(dynamicMember keyPath: WritableKeyPath<InnerData, Value>) -> Value {
-                    get {
-                        inner[keyPath: keyPath]
-                    }
-                    set {
-                        inner[keyPath: keyPath] = newValue
-                    }
-                }
             }
             """#,
             macros: testMacros
@@ -131,6 +122,51 @@ final class FlattenTests: XCTestCase {
                     set {
                         inner[keyPath: keyPath] = newValue
                     }
+                }
+            }
+            """#,
+            macros: testMacros
+        )
+        #else
+        throw XCTSkip("macros are only supported when running tests for the host platform")
+        #endif
+    }
+
+    func testFlattenMultipleProperties() throws {
+        #if canImport(FlattenMacros)
+        assertMacroExpansion(
+            """
+            struct InnerDataA {
+                let valueA: Int
+            }
+            struct InnerDataB {
+                let valueB: String
+            }
+            @dynamicMemberLookup
+            struct Container {
+                @Flatten let innerA: InnerDataA
+                @Flatten let innerB: InnerDataB
+            }
+            """,
+            expandedSource:
+            #"""
+            struct InnerDataA {
+                let valueA: Int
+            }
+            struct InnerDataB {
+                let valueB: String
+            }
+            @dynamicMemberLookup
+            struct Container {
+                let innerA: InnerDataA
+            
+                subscript <Value>(dynamicMember keyPath: KeyPath<InnerDataA, Value>) -> Value {
+                    innerA[keyPath: keyPath]
+                }
+                let innerB: InnerDataB
+
+                subscript <Value>(dynamicMember keyPath: KeyPath<InnerDataB, Value>) -> Value {
+                    innerB[keyPath: keyPath]
                 }
             }
             """#,
