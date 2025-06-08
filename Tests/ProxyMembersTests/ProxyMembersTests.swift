@@ -2,19 +2,19 @@ import SwiftSyntaxMacros
 import SwiftSyntaxMacrosTestSupport
 import XCTest
 
-#if canImport(FlattenMacros)
-import FlattenMacros
+#if canImport(ProxyMembersMacros)
+import ProxyMembersMacros
 
 let testMacros: [String: Macro.Type] = [
-    "Flatten": FlattenMacro.self,
+    "ProxyMembers": ProxyMembersMacro.self,
 ]
 #endif
 
-final class FlattenTests: XCTestCase {
+final class ProxyMembersTests: XCTestCase {
 
     // MARK: - Success Cases
-    func testFlattenOnVarProperty() throws {
-        #if canImport(FlattenMacros)
+    func testProxyMembersOnVarProperty() throws {
+        #if canImport(ProxyMembersMacros)
         assertMacroExpansion(
             """
             struct InnerData {
@@ -23,7 +23,7 @@ final class FlattenTests: XCTestCase {
             
             @dynamicMemberLookup
             struct Container {
-                @Flatten var inner: InnerData
+                @ProxyMembers var inner: InnerData
             }
             """,
             expandedSource:
@@ -57,8 +57,8 @@ final class FlattenTests: XCTestCase {
         #endif
     }
 
-    func testFlattenOnLetProperty() throws {
-        #if canImport(FlattenMacros)
+    func testProxyMembersOnLetProperty() throws {
+        #if canImport(ProxyMembersMacros)
         assertMacroExpansion(
             """
             struct InnerData {
@@ -66,7 +66,7 @@ final class FlattenTests: XCTestCase {
             }
             @dynamicMemberLookup
             struct Container {
-                @Flatten let inner: InnerData
+                @ProxyMembers let inner: InnerData
             }
             """,
             expandedSource:
@@ -90,8 +90,8 @@ final class FlattenTests: XCTestCase {
         #endif
     }
 
-    func testFlattenWithGenericTypes() throws {
-        #if canImport(FlattenMacros)
+    func testProxyMembersWithGenericTypes() throws {
+        #if canImport(ProxyMembersMacros)
         assertMacroExpansion(
             """
             struct InnerGeneric<T> {
@@ -99,7 +99,7 @@ final class FlattenTests: XCTestCase {
             }
             @dynamicMemberLookup
             struct OuterGeneric<T> {
-                @Flatten var inner: InnerGeneric<T>
+                @ProxyMembers var inner: InnerGeneric<T>
             }
             """,
             expandedSource:
@@ -132,8 +132,8 @@ final class FlattenTests: XCTestCase {
         #endif
     }
 
-    func testFlattenMultipleProperties() throws {
-        #if canImport(FlattenMacros)
+    func testProxyMembersMultipleProperties() throws {
+        #if canImport(ProxyMembersMacros)
         assertMacroExpansion(
             """
             struct InnerDataA {
@@ -144,8 +144,8 @@ final class FlattenTests: XCTestCase {
             }
             @dynamicMemberLookup
             struct Container {
-                @Flatten let innerA: InnerDataA
-                @Flatten let innerB: InnerDataB
+                @ProxyMembers let innerA: InnerDataA
+                @ProxyMembers let innerB: InnerDataB
             }
             """,
             expandedSource:
@@ -179,13 +179,13 @@ final class FlattenTests: XCTestCase {
 
     // MARK: - Failure & Diagnostic Cases
 
-    func testFlattenEmitsErrorForMissingTypeAnnotation() throws {
-        #if canImport(FlattenMacros)
+    func testProxyMembersEmitsErrorForMissingTypeAnnotation() throws {
+        #if canImport(ProxyMembersMacros)
         assertMacroExpansion(
             """
             @dynamicMemberLookup
             struct Container {
-                @Flatten var inner
+                @ProxyMembers var inner
             }
             """,
             expandedSource:
@@ -196,7 +196,7 @@ final class FlattenTests: XCTestCase {
             }
             """,
             diagnostics: [
-                DiagnosticSpec(message: "The property with @Flatten must have an explicit type annotation.", line: 3, column: 17)
+                DiagnosticSpec(message: "The property with @ProxyMembers must have an explicit type annotation.", line: 3, column: 17)
             ],
             macros: testMacros
         )
@@ -205,12 +205,12 @@ final class FlattenTests: XCTestCase {
         #endif
     }
 
-    func testFlattenEmitsErrorWhenNotOnProperty() throws {
-        #if canImport(FlattenMacros)
+    func testProxyMembersEmitsErrorWhenNotOnProperty() throws {
+        #if canImport(ProxyMembersMacros)
         assertMacroExpansion(
             """
             struct Container {
-                @Flatten func myFunc() {}
+                @ProxyMembers func myFunc() {}
             }
             """,
             expandedSource:
@@ -220,7 +220,7 @@ final class FlattenTests: XCTestCase {
             }
             """,
             diagnostics: [
-                DiagnosticSpec(message: "@Flatten can only be attached to a property declaration.", line: 2, column: 5)
+                DiagnosticSpec(message: "@ProxyMembers can only be attached to a property declaration.", line: 2, column: 5)
             ],
             macros: testMacros
         )

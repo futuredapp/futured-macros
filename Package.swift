@@ -11,7 +11,7 @@ let package = Package(
             name: "FuturedMacros",
             targets: [
                 "EnumIdentable",
-                "Flatten"
+                "ProxyMembers"
             ]
         )
     ],
@@ -28,7 +28,7 @@ let package = Package(
             ]
         ),
         .macro(
-            name: "FlattenMacros",
+            name: "ProxyMembersMacros",
             dependencies: [
                 .product(name: "SwiftSyntaxMacros", package: "swift-syntax"),
                 .product(name: "SwiftCompilerPlugin", package: "swift-syntax")
@@ -37,7 +37,7 @@ let package = Package(
 
         // Library that exposes a macro as part of its API, which is used in client programs.
         .target(name: "EnumIdentable", dependencies: ["EnumIdentableMacros"]),
-        .target(name: "Flatten", dependencies: ["FlattenMacros"]),
+        .target(name: "ProxyMembers", dependencies: ["ProxyMembersMacros"]),
 
         // A test target used to develop the macro implementation.
         .testTarget(
@@ -48,9 +48,9 @@ let package = Package(
             ]
         ),
         .testTarget(
-            name: "FlattenTests",
+            name: "ProxyMembersTests",
             dependencies: [
-                "FlattenMacros",
+                "ProxyMembersMacros",
                 .product(name: "SwiftSyntaxMacrosTestSupport", package: "swift-syntax")
             ]
         )

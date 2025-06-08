@@ -12,7 +12,7 @@
 ///
 /// @dynamicMemberLookup
 /// struct Container {
-///     @Flatten var inner: InnerData
+///     @ProxyMembers var inner: InnerData
 /// }
 /// ```
 ///
@@ -25,4 +25,4 @@
 ///
 /// - Precondition: The enclosing type must be marked with the `@dynamicMemberLookup` attribute.
 @attached(peer, names: named(subscript))
-public macro Flatten() = #externalMacro(module: "FlattenMacros", type: "FlattenMacro")
+public macro ProxyMembers() = #externalMacro(module: "ProxyMembersMacros", type: "ProxyMembersMacro")
