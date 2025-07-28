@@ -59,11 +59,6 @@ extension EnumIdentableMacro: ExtensionMacro {
             """
         )
 
-
-        // There is probably bug in Swift Tests where conformances are not passed down. Should investigate.
-        return []
-            + (protocolNames.contains("Equatable") ? [equatableConformance] : [])
-            + (protocolNames.contains("Hashable") ? [hashableConformance] : [])
-            + (protocolNames.contains("Identifiable") ? [identifiableConformance] : [])
+        return [equatableConformance, hashableConformance, identifiableConformance]
     }
 }
