@@ -9,7 +9,10 @@ let package = Package(
     products: [
         .library(
             name: "FuturedMacros",
-            targets: ["EnumIdentable"]
+            targets: [
+                "EnumIdentable",
+                "ProxyMembers"
+            ]
         )
     ],
     dependencies: [
@@ -24,17 +27,32 @@ let package = Package(
                 .product(name: "SwiftCompilerPlugin", package: "swift-syntax")
             ]
         ),
+        .macro(
+            name: "ProxyMembersMacros",
+            dependencies: [
+                .product(name: "SwiftSyntaxMacros", package: "swift-syntax"),
+                .product(name: "SwiftCompilerPlugin", package: "swift-syntax")
+            ]
+        ),
 
         // Library that exposes a macro as part of its API, which is used in client programs.
         .target(name: "EnumIdentable", dependencies: ["EnumIdentableMacros"]),
+        .target(name: "ProxyMembers", dependencies: ["ProxyMembersMacros"]),
 
         // A test target used to develop the macro implementation.
         .testTarget(
             name: "EnumIdentableTests",
             dependencies: [
                 "EnumIdentableMacros",
-                .product(name: "SwiftSyntaxMacrosTestSupport", package: "swift-syntax"),
+                .product(name: "SwiftSyntaxMacrosTestSupport", package: "swift-syntax")
             ]
         ),
+        .testTarget(
+            name: "ProxyMembersTests",
+            dependencies: [
+                "ProxyMembersMacros",
+                .product(name: "SwiftSyntaxMacrosTestSupport", package: "swift-syntax")
+            ]
+        )
     ]
 )
