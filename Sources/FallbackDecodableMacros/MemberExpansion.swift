@@ -2,7 +2,7 @@ import SwiftDiagnostics
 import SwiftSyntax
 import SwiftSyntaxMacros
 
-extension DefaultableEnumMacro: MemberMacro {
+extension FallbackDecodableMacro: MemberMacro {
     public static func expansion(
         of node: AttributeSyntax,
         providingMembersOf declaration: some DeclGroupSyntax,
@@ -14,7 +14,7 @@ extension DefaultableEnumMacro: MemberMacro {
         }
 
         guard let fallbackName = parseFallbackCaseName(node) else {
-            // Required argument — compiler catches missing case at the call site.
+            // Required argument — compiler catches missing arg at the call site.
             return []
         }
 

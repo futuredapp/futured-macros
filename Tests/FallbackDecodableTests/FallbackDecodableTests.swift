@@ -2,29 +2,29 @@ import SwiftSyntaxMacros
 import SwiftSyntaxMacrosTestSupport
 import XCTest
 
-#if canImport(DefaultableEnumMacros)
-import DefaultableEnumMacros
+#if canImport(FallbackDecodableMacros)
+import FallbackDecodableMacros
 
 let testMacros: [String: Macro.Type] = [
-    "DefaultableEnum": DefaultableEnumMacro.self
+    "FallbackDecodable": FallbackDecodableMacro.self
 ]
 #endif
 
-final class DefaultableEnumTests: XCTestCase {
+final class FallbackDecodableTests: XCTestCase {
     // MARK: - Branch A — explicit raw type, zero-arity fallback
 
     func testBranchA_unknownFallback() throws {
-        #if canImport(DefaultableEnumMacros)
+        #if canImport(FallbackDecodableMacros)
         assertMacroExpansion(
             """
-            @DefaultableEnum(fallback: .unknown)
-            enum FeedEntityType: String, Codable {
+            @FallbackDecodable(fallback: FeedEntityType.unknown)
+            enum FeedEntityType: String {
                 case performer, place, promoter, unknown
             }
             """,
             expandedSource:
             """
-            enum FeedEntityType: String, Codable {
+            enum FeedEntityType: String {
                 case performer, place, promoter, unknown
 
                 nonisolated static func fallback(for _: String) -> Self {
@@ -32,7 +32,7 @@ final class DefaultableEnumTests: XCTestCase {
                 }
             }
 
-            extension FeedEntityType: DefaultableDecodableEnum {
+            extension FeedEntityType: FallbackDecodable {
             }
             """,
             macros: testMacros
@@ -43,17 +43,17 @@ final class DefaultableEnumTests: XCTestCase {
     }
 
     func testBranchA_nonUnknownFallback() throws {
-        #if canImport(DefaultableEnumMacros)
+        #if canImport(FallbackDecodableMacros)
         assertMacroExpansion(
             """
-            @DefaultableEnum(fallback: .horizontal)
-            enum EventSectionMode: String, Codable {
+            @FallbackDecodable(fallback: EventSectionMode.horizontal)
+            enum EventSectionMode: String {
                 case horizontal, vertical
             }
             """,
             expandedSource:
             """
-            enum EventSectionMode: String, Codable {
+            enum EventSectionMode: String {
                 case horizontal, vertical
 
                 nonisolated static func fallback(for _: String) -> Self {
@@ -61,7 +61,7 @@ final class DefaultableEnumTests: XCTestCase {
                 }
             }
 
-            extension EventSectionMode: DefaultableDecodableEnum {
+            extension EventSectionMode: FallbackDecodable {
             }
             """,
             macros: testMacros
@@ -72,17 +72,17 @@ final class DefaultableEnumTests: XCTestCase {
     }
 
     func testBranchA_intRawType() throws {
-        #if canImport(DefaultableEnumMacros)
+        #if canImport(FallbackDecodableMacros)
         assertMacroExpansion(
             """
-            @DefaultableEnum(fallback: .unknown)
-            enum Status: Int, Codable {
+            @FallbackDecodable(fallback: Status.unknown)
+            enum Status: Int {
                 case ok = 0, warning = 1, unknown = -1
             }
             """,
             expandedSource:
             """
-            enum Status: Int, Codable {
+            enum Status: Int {
                 case ok = 0, warning = 1, unknown = -1
 
                 nonisolated static func fallback(for _: Int) -> Self {
@@ -90,7 +90,7 @@ final class DefaultableEnumTests: XCTestCase {
                 }
             }
 
-            extension Status: DefaultableDecodableEnum {
+            extension Status: FallbackDecodable {
             }
             """,
             macros: testMacros
@@ -103,18 +103,18 @@ final class DefaultableEnumTests: XCTestCase {
     // MARK: - Branch B — associated-value fallback, no explicit raw type
 
     func testBranchB_associatedValueUnknown() throws {
-        #if canImport(DefaultableEnumMacros)
+        #if canImport(FallbackDecodableMacros)
         assertMacroExpansion(
             """
-            @DefaultableEnum(fallback: .unknown)
-            enum FeedEntityType: Codable {
+            @FallbackDecodable(fallback: FeedEntityType.unknown)
+            enum FeedEntityType {
                 case performer, place, promoter
                 case unknown(String)
             }
             """,
             expandedSource:
             #"""
-            enum FeedEntityType: Codable {
+            enum FeedEntityType {
                 case performer, place, promoter
                 case unknown(String)
 
@@ -149,7 +149,7 @@ final class DefaultableEnumTests: XCTestCase {
                 }
             }
 
-            extension FeedEntityType: DefaultableDecodableEnum {
+            extension FeedEntityType: FallbackDecodable {
             }
             """#,
             macros: testMacros
@@ -162,10 +162,10 @@ final class DefaultableEnumTests: XCTestCase {
     // MARK: - Diagnostics
 
     func testDiagnostic_mustBeEnum() throws {
-        #if canImport(DefaultableEnumMacros)
+        #if canImport(FallbackDecodableMacros)
         assertMacroExpansion(
             """
-            @DefaultableEnum(fallback: .unknown)
+            @FallbackDecodable(fallback: NotAnEnum.foo)
             struct NotAnEnum {}
             """,
             expandedSource:
@@ -173,7 +173,7 @@ final class DefaultableEnumTests: XCTestCase {
             struct NotAnEnum {}
             """,
             diagnostics: [
-                DiagnosticSpec(message: "`@DefaultableEnum` can only be applied to an `enum`", line: 1, column: 1)
+                DiagnosticSpec(message: "`@FallbackDecodable` can only be applied to an `enum`", line: 1, column: 1)
             ],
             macros: testMacros
         )
@@ -183,21 +183,21 @@ final class DefaultableEnumTests: XCTestCase {
     }
 
     func testDiagnostic_unknownFallbackCase() throws {
-        #if canImport(DefaultableEnumMacros)
+        #if canImport(FallbackDecodableMacros)
         assertMacroExpansion(
             """
-            @DefaultableEnum(fallback: .nope)
-            enum E: String, Codable {
+            @FallbackDecodable(fallback: E.nope)
+            enum E: String {
                 case a, b
             }
             """,
             expandedSource:
             """
-            enum E: String, Codable {
+            enum E: String {
                 case a, b
             }
 
-            extension E: DefaultableDecodableEnum {
+            extension E: FallbackDecodable {
             }
             """,
             diagnostics: [
@@ -241,16 +241,16 @@ final class DefaultableEnumTests: XCTestCase {
 // MARK: - Fixtures (hand-rolled to mirror what the macro generates;
 // the macro itself is exercised by the expansion tests above)
 
-import DefaultableEnum
+import FallbackDecodable
 
 // Branch A — explicit raw type + zero-arity fallback
-enum SimpleTestEnum: String, Codable, DefaultableDecodableEnum {
+enum SimpleTestEnum: String, FallbackDecodable {
     case performer, place, promoter, unknown
     nonisolated static func fallback(for _: String) -> Self { .unknown }
 }
 
 // Branch B — no explicit raw type + associated-value fallback
-enum RichTestEnum: Codable, Equatable, DefaultableDecodableEnum {
+enum RichTestEnum: Codable, Equatable, FallbackDecodable {
     case performer, place, promoter
     case unknown(String)
 

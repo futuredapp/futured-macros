@@ -12,7 +12,7 @@ let package = Package(
             targets: [
                 "EnumIdentable",
                 "ProxyMembers",
-                "DefaultableEnum"
+                "FallbackDecodable"
             ]
         )
     ],
@@ -36,7 +36,7 @@ let package = Package(
             ]
         ),
         .macro(
-            name: "DefaultableEnumMacros",
+            name: "FallbackDecodableMacros",
             dependencies: [
                 .product(name: "SwiftSyntaxMacros", package: "swift-syntax"),
                 .product(name: "SwiftCompilerPlugin", package: "swift-syntax")
@@ -46,7 +46,7 @@ let package = Package(
         // Library that exposes a macro as part of its API, which is used in client programs.
         .target(name: "EnumIdentable", dependencies: ["EnumIdentableMacros"]),
         .target(name: "ProxyMembers", dependencies: ["ProxyMembersMacros"]),
-        .target(name: "DefaultableEnum", dependencies: ["DefaultableEnumMacros"]),
+        .target(name: "FallbackDecodable", dependencies: ["FallbackDecodableMacros"]),
 
         // A test target used to develop the macro implementation.
         .testTarget(
@@ -64,10 +64,10 @@ let package = Package(
             ]
         ),
         .testTarget(
-            name: "DefaultableEnumTests",
+            name: "FallbackDecodableTests",
             dependencies: [
-                "DefaultableEnumMacros",
-                "DefaultableEnum",
+                "FallbackDecodableMacros",
+                "FallbackDecodable",
                 .product(name: "SwiftSyntaxMacrosTestSupport", package: "swift-syntax")
             ]
         )

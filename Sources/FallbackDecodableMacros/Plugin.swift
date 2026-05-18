@@ -2,8 +2,8 @@ import SwiftCompilerPlugin
 import SwiftSyntaxMacros
 
 @main
-struct DefaultableEnumPlugin: CompilerPlugin {
+struct FallbackDecodablePlugin: CompilerPlugin {
     let providingMacros: [Macro.Type] = [
-        DefaultableEnumMacro.self
+        FallbackDecodableMacro.self
     ]
 }

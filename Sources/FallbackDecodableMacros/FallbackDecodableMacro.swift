@@ -1,7 +1,7 @@
 import SwiftSyntax
 import SwiftSyntaxMacros
 
-public enum DefaultableEnumMacro {
+public enum FallbackDecodableMacro {
     struct ParsedCase {
         let name: String
         let associatedTypes: [String]
@@ -34,12 +34,15 @@ public enum DefaultableEnumMacro {
             "Codable", "Decodable", "Encodable",
             "Sendable", "Equatable", "Hashable", "Identifiable",
             "CaseIterable", "RawRepresentable",
-            "DefaultableDecodableEnum"
+            "FallbackDecodable"
         ]
         return knownProtocols.contains(typeName) ? nil : typeName
     }
 
-    /// Parses the macro's `fallback:` argument as a case name (e.g. `.unknown` -> `"unknown"`).
+    /// Parses the macro's `fallback:` argument as a case name. Accepts
+    /// fully-qualified `EnumName.case` (generic `<T>` infers T as the enum
+    /// type) and any other `MemberAccessExprSyntax` — only the trailing
+    /// case identifier is consumed.
     static func parseFallbackCaseName(_ node: AttributeSyntax) -> String? {
         guard let arguments = node.arguments?.as(LabeledExprListSyntax.self) else { return nil }
         for arg in arguments where arg.label?.text == "fallback" {

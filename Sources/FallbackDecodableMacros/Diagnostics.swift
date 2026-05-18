@@ -1,6 +1,6 @@
 import SwiftDiagnostics
 
-extension DefaultableEnumMacro {
+extension FallbackDecodableMacro {
     public enum Diagnostics: DiagnosticMessage {
         case mustBeEnum
         case unknownFallbackCase(name: String, available: String)
@@ -13,7 +13,7 @@ extension DefaultableEnumMacro {
         public var message: String {
             switch self {
             case .mustBeEnum:
-                "`@DefaultableEnum` can only be applied to an `enum`"
+                "`@FallbackDecodable` can only be applied to an `enum`"
             case let .unknownFallbackCase(name, available):
                 "Case `.\(name)` does not exist on this enum. Available cases: \(available)"
             case .fallbackCaseInvalidArity:
@@ -39,7 +39,7 @@ extension DefaultableEnumMacro {
             case .branchBRequiresStringRaw: "branchBRequiresStringRaw"
             case .branchBKnownCaseHasAssociatedValue: "branchBKnownCaseHasAssociatedValue"
             }
-            return MessageID(domain: "DefaultableEnumMacro", id: id)
+            return MessageID(domain: "FallbackDecodableMacro", id: id)
         }
 
         public var severity: DiagnosticSeverity { .error }

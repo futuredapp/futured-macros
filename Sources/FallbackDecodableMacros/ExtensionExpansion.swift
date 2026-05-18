@@ -2,7 +2,7 @@ import SwiftDiagnostics
 import SwiftSyntax
 import SwiftSyntaxMacros
 
-extension DefaultableEnumMacro: ExtensionMacro {
+extension FallbackDecodableMacro: ExtensionMacro {
     public static func expansion(
         of node: AttributeSyntax,
         attachedTo declaration: some DeclGroupSyntax,
@@ -14,6 +14,6 @@ extension DefaultableEnumMacro: ExtensionMacro {
             // MemberExpansion has already diagnosed; stay silent here.
             return []
         }
-        return [try ExtensionDeclSyntax("extension \(type): DefaultableDecodableEnum {}")]
+        return [try ExtensionDeclSyntax("extension \(type): FallbackDecodable {}")]
     }
 }

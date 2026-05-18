@@ -1,16 +1,16 @@
 import Foundation
 
-/// Wires an enum to `DefaultableDecodableEnum`. Decoding an unknown raw value
-/// falls back to the declared case instead of throwing and burning the entire
-/// payload.
+/// Wires an enum to `FallbackDecodable`. Decoding an unknown raw value falls
+/// back to the declared case instead of throwing and burning the entire payload.
 ///
-/// **Required `fallback:` argument** — name the case that catches unknown
-/// raws. The macro inspects that case's associated-value arity:
+/// **Required `fallback:` argument** — fully-qualified case reference
+/// (`EnumName.unknown`) naming the case that catches unknown raws. The macro
+/// inspects that case's associated-value arity:
 ///
 /// - **Zero arity** (e.g. `case unknown`): the enum must declare a raw type.
 ///   ```swift
-///   @DefaultableEnum(fallback: .unknown)
-///   enum FeedEntityType: String, Codable {
+///   @FallbackDecodable(fallback: FeedEntityType.unknown)
+///   enum FeedEntityType: String, Sendable {
 ///       case performer, place, promoter, unknown
 ///   }
 ///   ```
@@ -19,22 +19,22 @@ import Foundation
 ///   synthesises `init?(rawValue:)` / `rawValue` using case names as raw
 ///   strings, and the fallback preserves the original BE value.
 ///   ```swift
-///   @DefaultableEnum(fallback: .unknown)
-///   enum FeedEntityType: Codable {
+///   @FallbackDecodable(fallback: FeedEntityType.unknown)
+///   enum FeedEntityType: Sendable {
 ///       case performer, place, promoter
 ///       case unknown(String)
 ///   }
 ///   ```
 @attached(member, names: named(fallback), named(init), named(rawValue))
-@attached(extension, conformances: DefaultableDecodableEnum)
-public macro DefaultableEnum(fallback: Any) = #externalMacro(
-    module: "DefaultableEnumMacros",
-    type: "DefaultableEnumMacro"
+@attached(extension, conformances: FallbackDecodable)
+public macro FallbackDecodable<T>(fallback: T) = #externalMacro(
+    module: "FallbackDecodableMacros",
+    type: "FallbackDecodableMacro"
 )
 
 /// Global sink for fallback log lines. Default no-op. Apps wire their own
 /// logger once at startup (typically in `Container.init`) before any decoding
 /// begins; set-after-decode is racy.
-public enum DefaultableEnumLogger {
+public enum FallbackDecodableLogger {
     public static var sink: @Sendable (String) -> Void = { _ in }
 }
