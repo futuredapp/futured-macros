@@ -11,7 +11,8 @@ let package = Package(
             name: "FuturedMacros",
             targets: [
                 "EnumIdentable",
-                "ProxyMembers"
+                "ProxyMembers",
+                "AutoMock"
             ]
         )
     ],
@@ -34,10 +35,18 @@ let package = Package(
                 .product(name: "SwiftCompilerPlugin", package: "swift-syntax")
             ]
         ),
+        .macro(
+            name: "AutoMockMacros",
+            dependencies: [
+                .product(name: "SwiftSyntaxMacros", package: "swift-syntax"),
+                .product(name: "SwiftCompilerPlugin", package: "swift-syntax")
+            ]
+        ),
 
         // Library that exposes a macro as part of its API, which is used in client programs.
         .target(name: "EnumIdentable", dependencies: ["EnumIdentableMacros"]),
         .target(name: "ProxyMembers", dependencies: ["ProxyMembersMacros"]),
+        .target(name: "AutoMock", dependencies: ["AutoMockMacros"]),
 
         // A test target used to develop the macro implementation.
         .testTarget(
@@ -51,6 +60,13 @@ let package = Package(
             name: "ProxyMembersTests",
             dependencies: [
                 "ProxyMembersMacros",
+                .product(name: "SwiftSyntaxMacrosTestSupport", package: "swift-syntax")
+            ]
+        ),
+        .testTarget(
+            name: "AutoMockTests",
+            dependencies: [
+                "AutoMockMacros",
                 .product(name: "SwiftSyntaxMacrosTestSupport", package: "swift-syntax")
             ]
         )
